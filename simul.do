@@ -5,7 +5,7 @@ ssc install missings
 ***                     Import Data                                          ***
 ********************************************************************************
 quietly{
-import excel using data2022.xlsx, sheet("T1") firstrow clear
+import excel using "resultats-par-niveau-cirlg-t1-france-entiere-legis2022", firstrow clear
 rename (Nom Prénom Nuance Voix Sièges) (Nom0 Prénom0 Nuance0 Voix0 Sièges0) 
 rename 	 (AE AF AG AH AK) (Nom1 Prénom1 Nuance1 Voix1 Sièges1)
 rename 	 (AN AO AP AQ AT) (Nom2 Prénom2 Nuance2 Voix2 Sièges2)
@@ -29,79 +29,181 @@ rename 	 (GK GL GM GN GQ) (Nom19 Prénom19 Nuance19 Voix19 Sièges19)
 rename 	 (GT GU GV GW GZ) (Nom20 Prénom20 Nuance20 Voix20 Sièges20)
 rename 	 (HC HD HE HF)    (Nom21 Prénom21 Nuance21 Voix21)
 tostring Sièges*, replace force
-keep Codedudépartement Codedelacirconscription Inscrits Exprimés ///
-	 Nom* Prénom* Nuance* Voix* Sièges*
+replace Codedudépartement = "971" if Codedudépartement == "ZA"
+replace Codedudépartement = "972" if Codedudépartement == "ZB"
+replace Codedudépartement = "973" if Codedudépartement == "ZC"
+replace Codedudépartement = "974" if Codedudépartement == "ZD"
+replace Codedudépartement = "976" if Codedudépartement == "ZM"
+replace Codedudépartement = "988" if Codedudépartement == "ZN"
+replace Codedudépartement = "987" if Codedudépartement == "ZP"
+replace Codedudépartement = "975" if Codedudépartement == "ZS"
+replace Codedudépartement = "986" if Codedudépartement == "ZW"
+gen Codecirconscriptionlégislative = Codedudépartement + Codedelacirconscription
+keep Codecirconscriptionlégislative Inscrits Exprimés Nom* Prénom* Nuance* Voix* Sièges*
 drop VoixIns VoixExp
-reshape long Nom Prénom Nuance Voix Sièges, i(Codedudépartement Codedelacirconscription Inscrits Exprimés) j(candidat_id)
+reshape long Nom Prénom Nuance Voix Sièges, i(Codecirconscriptionlégislative Inscrits Exprimés) j(candidat_id)
 drop if mi(Nom)
 save data2022_T1.dta,replace
 ********************************************************************************
-import excel using data2022.xlsx, sheet("T2") firstrow clear
+import excel using "resultats-par-niveau-cirlg-t2-france-entiere-legis2022", firstrow clear
 destring Inscrits, replace force
 rename (Nom Prénom Nuance Voix Sièges) (Nom0 Prénom0 Nuance0 Voix0 Sièges0) 
 rename 	 (AE AF AG AH AK) (Nom1 Prénom1 Nuance1 Voix1 Sièges1)
 rename 	 (AN AO AP AQ AT) (Nom2 Prénom2 Nuance2 Voix2 Sièges2)
-keep Codedudépartement Codedelacirconscription Inscrits Exprimés ///
-	 Nom* Prénom* Nuance* Voix* Sièges*
+replace Codedudépartement = "971" if Codedudépartement == "ZA"
+replace Codedudépartement = "972" if Codedudépartement == "ZB"
+replace Codedudépartement = "973" if Codedudépartement == "ZC"
+replace Codedudépartement = "974" if Codedudépartement == "ZD"
+replace Codedudépartement = "976" if Codedudépartement == "ZM"
+replace Codedudépartement = "988" if Codedudépartement == "ZN"
+replace Codedudépartement = "987" if Codedudépartement == "ZP"
+replace Codedudépartement = "975" if Codedudépartement == "ZS"
+replace Codedudépartement = "986" if Codedudépartement == "ZW"
+gen Codecirconscriptionlégislative = Codedudépartement + Codedelacirconscription
+keep Codecirconscriptionlégislative Inscrits Exprimés Nom* Prénom* Nuance* Voix* Sièges*
 drop VoixIns VoixExp
-reshape long Nom Prénom Nuance Voix Sièges, i(Codedudépartement Codedelacirconscription Inscrits Exprimés) j(j)
+reshape long Nom Prénom Nuance Voix Sièges, i(Codecirconscriptionlégislative Inscrits Exprimés) j(j)
 drop j
 drop if mi(Nom)
 save data2022_T2.dta,replace
 ********************************************************************************
+import excel using "resultats-definitifs-par-circonscription-europ2019", firstrow clear
+rename (NomTêtedeListe Voix) (NomTêtedeListe0 Voix0)
+rename (AC AD) (NomTêtedeListe1 Voix1)
+rename (AJ AK) (NomTêtedeListe2 Voix2)
+rename (AQ AR) (NomTêtedeListe3 Voix3)
+rename (AX AY) (NomTêtedeListe4 Voix4)
+rename (BE BF) (NomTêtedeListe5 Voix5)
+rename (BL BM) (NomTêtedeListe6 Voix6)
+rename (BS BT) (NomTêtedeListe7 Voix7)
+rename (BZ CA) (NomTêtedeListe8 Voix8)
+rename (CG CH) (NomTêtedeListe9 Voix9)
+rename (CN CO) (NomTêtedeListe10 Voix10)
+rename (CU CV) (NomTêtedeListe11 Voix11)
+rename (DB DC) (NomTêtedeListe12 Voix12)
+rename (DI DK) (NomTêtedeListe13 Voix13)
+rename (DP DQ) (NomTêtedeListe14 Voix14)
+rename (DW DX) (NomTêtedeListe15 Voix15)
+rename (ED EF) (NomTêtedeListe16 Voix16)
+rename (EK EL) (NomTêtedeListe17 Voix17)
+rename (ER ES) (NomTêtedeListe18 Voix18)
+rename (EY EZ) (NomTêtedeListe19 Voix19)
+rename (FF FG) (NomTêtedeListe20 Voix20)
+rename (FM FN) (NomTêtedeListe21 Voix21)
+rename (FT FU) (NomTêtedeListe22 Voix22)
+rename (GA GB) (NomTêtedeListe23 Voix23)
+rename (GH GI) (NomTêtedeListe24 Voix24)
+rename (GO GP) (NomTêtedeListe25 Voix25)
+rename (GV GW) (NomTêtedeListe26 Voix26)
+rename (HC HD) (NomTêtedeListe27 Voix27)
+rename (HJ HK) (NomTêtedeListe28 Voix28)
+rename (HQ HR) (NomTêtedeListe29 Voix29)
+rename (HX HY) (NomTêtedeListe30 Voix30)
+rename (IE IF) (NomTêtedeListe31 Voix31)
+rename (IL IM) (NomTêtedeListe32 Voix32)
+rename (IS IT) (NomTêtedeListe33 Voix33)
+replace Codedudépartement = "971" if Codedudépartement == "ZA"
+replace Codedudépartement = "972" if Codedudépartement == "ZB"
+replace Codedudépartement = "973" if Codedudépartement == "ZC"
+replace Codedudépartement = "974" if Codedudépartement == "ZD"
+replace Codedudépartement = "976" if Codedudépartement == "ZM"
+replace Codedudépartement = "988" if Codedudépartement == "ZN"
+replace Codedudépartement = "987" if Codedudépartement == "ZP"
+replace Codedudépartement = "975" if Codedudépartement == "ZS"
+replace Codedudépartement = "986" if Codedudépartement == "ZW"
+gen Codecirconscriptionlégislative = Codedudépartement + Codedelacirconscription
+keep Codecirconscriptionlégislative Inscrits Exprimés NomTêtedeListe* Voix* 
+drop VoixIns VoixExp
+reshape long NomTêtedeListe Voix , i(Codecirconscriptionlégislative Inscrits Exprimés) j(liste_id)
+drop if mi(NomTêtedeListe)
+gen     group = "XG" if inlist(NomTêtedeListe,"TRAORÉ Hamada","ARTHAUD Nathalie","SANCHEZ Antonio")	  
+replace group = "G"  if inlist(NomTêtedeListe,"AUBRY Manon","ALEXANDRE Audric","BOURG Dominique","GLUCKSMANN Raphaël","DELFEL Thérèse","ARTHAUD Nathalie")
+replace group = "G"  if inlist(NomTêtedeListe,"BROSSAT Ian","HAMON Benoît","SANCHEZ Antonio","JADOT Yannick","THOUY Hélène","AZERGUI Nagib")
+replace group = "C"  if inlist(NomTêtedeListe,"MARIE Florie","LOISEAU Nathalie","LAGARDE Jean-Christophe","CAILLAUD Sophie","TOMASINI Nathalie","CORBET Cathy Denise Ginette")
+replace group = "C"  if inlist(NomTêtedeListe,"DIEUMEGARD Pierre","CHALENÇON Christophe","LALANNE Francis","BIDOU Olivier")	  
+replace group = "D"  if inlist(NomTêtedeListe,"BELLAMY François-Xavier")	  
+replace group = "ED" if inlist(NomTêtedeListe,"DE PREVOISIN Robert","CAMUS Renaud","PHILIPPOT Florian","VAUCLIN Vincent","GERNIGON Yves","HELGEN Gilles")
+replace group = "ED" if inlist(NomTêtedeListe,"DUPONT-AIGNAN Nicolas","ASSELINEAU François","BARDELLA Jordan","PERSON Christian Luc")	  
+save data2019.dta,replace
+********************************************************************************
+import excel using "resultats-definitifs-par-circonscription-europ2024", firstrow clear
+keep Codecirconscriptionlégislative Inscrits Exprimés Libellédeliste* Nuanceliste* Voix* 
+drop Voixins* Voixexp*
+reshape long Libellédeliste Nuanceliste Voix , i(Codecirconscriptionlégislative Inscrits Exprimés) j(liste_id)
+drop if mi(Libellédeliste)
+gen     group = "XG" if inlist(Nuance, "LEXG")	  
+replace group = "G"  if inlist(Nuance, "LCOM", "LUG", "LDVG", "LECO", "LFI", "LVEC")	  
+replace group = "C"  if inlist(Nuance, "LDIV", "LENS")	  
+replace group = "D"  if inlist(Nuance, "LLR")	  
+replace group = "ED" if inlist(Nuance, "LDVD", "LREC", "LRN", "LEXD")	  
+save data2024.dta,replace
+********************************************************************************
 use data2022_T1, clear
 rename (Inscrits Exprimés Voix Sièges) (I2022T1 E2022T1 V2022T1 R2022T1)
-merge m:1 Codedudépartement Codedelacirconscription Nom Prénom Nuance using data2022_T2, keepusing(Inscrits Exprimés Voix Sièges) nogen
+merge m:1 Codecirconscriptionlégislative Nom Prénom Nuance using data2022_T2, keepusing(Inscrits Exprimés Voix Sièges) nogen
 rename (Inscrits Exprimés Voix Sièges)  (I2022T2 E2022T2 V2022T2 R2022T2)
-egen circo_id = group(Codedudépartement Codedelacirconscription)
+egen circo_id = group(Codecirconscriptionlégislative)
 fillin circo_id Nuance
 drop _fillin
 bys circo_id (candidat_id) : replace candidat_id = candidat_id[_n-1] + 1 if mi(candidat_id)
-bys circo_id (candidat_id) : replace Codedudépartement = Codedudépartement[_n-1] if mi(Codedudépartement)
-bys circo_id (candidat_id) : replace Codedelacirconscription = Codedelacirconscription[_n-1] if mi(Codedelacirconscription)
+bys circo_id (candidat_id) : replace Codecirconscriptionlégislative = Codecirconscriptionlégislative[_n-1] if mi(Codecirconscriptionlégislative)
 bys circo_id (I2022T1) : replace I2022T1 = I2022T1[_n-1] if mi(I2022T1)
 bys circo_id (I2022T2) : replace I2022T2 = I2022T2[_n-1] if mi(I2022T2)
 bys circo_id (E2022T1) : replace E2022T1 = E2022T1[_n-1] if mi(E2022T1)
 bys circo_id (E2022T2) : replace E2022T2 = E2022T2[_n-1] if mi(E2022T2)
 replace V2022T1 = 0 if mi(V2022T1)
 replace V2022T2 = 0 if mi(V2022T2)
-gen S2022T1 = V2022T1 / E2022T1
-gen S2022T2 = V2022T2 / E2022T2
 replace R2022T1 = "" if R2022T1 != "Elu"
 replace R2022T1 = "Passe" if mi(R2022T1) & V2022T2>0
 gen R2022 = "Elu" if R2022T1 == "Elu" | R2022T2 == "Elu"
 sort circo_id candidat_id
-order circo_id Codedudépartement Codedelacirconscription Nom Prénom Nuance candidat_id ///
-	  I2022T1 E2022T1 V2022T1 S2022T1 R2022T1 ///
-	  I2022T2 E2022T2 V2022T2 S2022T2 R2022T2 ///
-	  R2022
-save fulldata2022,replace
+
+gen     group = "XG" if inlist(Nuance, "DXG")	  
+replace group = "G" if inlist(Nuance, "NUP", "RDG", "DVG", "ECO")	  
+replace group = "C" if inlist(Nuance, "DIV", "REG", "ENS", "DVC", "UDI")	  
+replace group = "D" if inlist(Nuance, "LR")	  
+replace group = "ED" if inlist(Nuance, "DVD", "DSV", "REC", "RN", "DXD")	  
+
+preserve 
+	use data2019, clear
+	collapse (mean) Inscrits Exprimés (sum) Voix, by(Codecirconscriptionlégislative group)
+	rename (Inscrits Exprimés Voix )  (I2019 E2019 V2019)
+	tempfile temp
+	save `temp'
+restore
+merge m:1 Codecirconscriptionlégislative group using `temp', nogen
+
+preserve 
+	use data2024, clear
+	collapse (mean) Inscrits Exprimés (sum) Voix, by(Codecirconscriptionlégislative group)
+	rename (Inscrits Exprimés Voix )  (I2024 E2024 V2024)
+	tempfile temp
+	save `temp'
+restore
+merge m:1 Codecirconscriptionlégislative group using `temp', nogen
+
+order circo_id Codecirconscriptionlégislative Nom Prénom Nuance candidat_id group ///
+	  I2022T1 E2022T1 V2022T1 R2022T1 ///
+	  I2022T2 E2022T2 V2022T2 R2022T2 ///
+	  R2022 ///
+	  I2019 E2019 V2019 I2024 E2024 V2024
+
+save fulldata,replace
 }
 ********************************************************************************
 ***                     Calibration                                          ***
 ********************************************************************************
 quietly{
-use fulldata2022, clear
+use fulldata, clear
 rename (*2022T1) (*)
-keep circo_id candidat_id I E V S R Nuance R2022
+keep circo_id candidat_id I E V R Nuance group R2022
 /*Baseline = 2022 */
 gen X = .
-replace X = 0     if Nuance == "DXG"
-replace X = 0.25  if Nuance == "NUP"
-replace X = 0.25 if Nuance == "RDG"
-replace X = 0.25 if Nuance == "DVG"
-replace X = 0.25 if Nuance == "ECO"
-replace X = 0.5  if Nuance == "DIV"
-replace X = 0.5  if Nuance == "REG"
-replace X = 0.5  if Nuance == "ENS"
-replace X = 0.5  if Nuance == "DVC"
-replace X = 0.5  if Nuance == "UDI"
-replace X = 0.9 if Nuance == "LR"
-replace X = 1 if Nuance == "DVD"
-replace X = 1 if Nuance == "DSV"
-replace X = 1 if Nuance == "REC"
-replace X = 1 if Nuance == "RN"
-replace X = 1 if Nuance == "DXD"
+replace X = 0    if group == "XG"
+replace X = 0.25 if group == "G"
+replace X = 0.5  if group == "C"
+replace X = 0.9  if group == "D"
+replace X = 1    if group == "ED"
 gen Xmin = -0.25
 gen Xmax = 1.25
 bys circo_id (X): egen runoff = total(R == "Passe")
@@ -147,16 +249,17 @@ disp "Résultat 2022"
 tab Nuance if R2022 == "Elu"
 disp "Prédiction 2022" 	
 tab Nuance if RR == "Elu"
-tw (scatter actual predict) (line actual predict)
 tab actual predict
 /*
+
            |        predict
     actual |         0          1 |     Total
 -----------+----------------------+----------
-         0 |     9,471         95 |     9,566 
-         1 |        95        482 |       577 
+         0 |     9,468         98 |     9,566 
+         1 |        98        479 |       577 
 -----------+----------------------+----------
      Total |     9,566        577 |    10,143 
+
 */
 
 }
@@ -166,48 +269,30 @@ tab actual predict
 ********************************************************************************
 ***                     Simulation 2024                                      ***
 ********************************************************************************
-use fulldata2022,clear
-rename (*2022T1) (*)
-keep circo_id candidat_id I E V S R Nuance 
-
+use fulldata,clear
+keep circo_id candidat_id I* E* V* R* group Nuance
 /* PARAMETRES */ /*<------------------------------------------------------------------------------------------------------------------------------ PARAMETRES ICI*/
-
 * distance :
 * si X1 < x < X2
 * report de x vers Xi = 1-abs(x-Xi)/(X2-X1)
 gen X = .
-replace X = 0     if Nuance == "DXG"
-replace X = 0.25  if Nuance == "NUP"
-replace X = 0.25 if Nuance == "RDG"
-replace X = 0.25 if Nuance == "DVG"
-replace X = 0.25 if Nuance == "ECO"
-replace X = 0.5  if Nuance == "DIV"
-replace X = 0.5  if Nuance == "REG"
-replace X = 0.5  if Nuance == "ENS"
-replace X = 0.5  if Nuance == "DVC"
-replace X = 0.5  if Nuance == "UDI"
-replace X = 0.9 if Nuance == "LR"
-replace X = 1 if Nuance == "DVD"
-replace X = 1 if Nuance == "DSV"
-replace X = 1 if Nuance == "REC"
-replace X = 1 if Nuance == "RN"
-replace X = 1 if Nuance == "DXD"
+replace X = 0    if group == "XG"
+replace X = 0.25 if group == "G"
+replace X = 0.5  if group == "C"
+replace X = 0.9  if group == "D"
+replace X = 1    if group == "ED"
 gen Xmin = -0.25 /* abstention de gauche */
 gen Xmax = 1.25  /* abstention de droite */
-
-/*Tendance Europeennes*/
-replace V = min(max(0,V - 0.03435 * E),I) if X == 0
-replace V = min(max(0,V - 0.05178 * E),I) if X == 0.5
-replace V = min(max(0,V - 0.01215 * E),I) if X == 0.8
-replace V = min(max(0,V + 0.09818 * E),I) if X == 1
-drop E
-bys circo_id (V) : egen E = total(V)
-
 /* PARAMETRES */ /*<-------------------------------------------------------------------------------------------------------------------------------------------------------*/
 
 /* RUN SIMUL */
 quietly{
-drop R
+gen I = I2024
+
+/*Tendance Europeennes*/
+gen trend2224 = (V2024/E2024 - V2019/E2019) * 2/5
+gen V = min(max((V2022T1+trend2224*E2022T1)*I/I2022T1,0),I)
+bys circo_id (V) : egen E = total(V)
 gen V_I = V/I
 gen V_E = V/E
 bys circo_id (V) : gen R = "Elu" if _n ==  _N &  V_E > 0.5 &  V_I > 0.25
@@ -255,3 +340,6 @@ tab Nuance if RR == "Elu"
 }
 }
 /**/
+
+gen V_E2 = V_E^2 
+reg trend2224 V_E V_E2 if Nuance == "RN"
