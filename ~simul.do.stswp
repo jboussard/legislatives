@@ -370,7 +370,7 @@ graph export voteC.png, replace
 tw (scatter DVE_D VE2019_D) (qfit DVE_D VE2019_D ), xtitle("Vote Droite, EU2019") ytitle("Variation Vote Droite, EU2024-2019") legend(off)
 graph export voteD.png, replace
 
-tw (scatter DVE_G VE2019_G) (qfit DVE_G VE2019_G ), xtitle("Vote Gauche, EU2019") ytitle("Variation Vote Gauche, EU2024-2019") legend(off)
+tw (scatter DVE_G VE2019_G) (qfit DVE_G VE2019_G ), xtitle("Vote Gauche, EU2019") ytitle("Variation Vote Gauche, EU2024-2019") legend(off) saving("voteG.png")
 graph export voteG.png, replace
 
 
