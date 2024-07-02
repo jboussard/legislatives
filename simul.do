@@ -138,6 +138,180 @@ replace group = "D"  if inlist(Nuance, "LLR")
 replace group = "ED" if inlist(Nuance, "LDVD", "LREC", "LRN", "LEXD")	  
 save data2024.dta,replace
 ********************************************************************************
+import excel using "lg2024-resultats-circonscriptions-une-ligne-par-candidat2", firstrow clear
+keep CodCirElec Inscrits Exprimes NomPsn PrenomPsn CodNuaCand NbVoix Elu
+save data2024_T1.dta,replace
+********************************************************************************
+use data2024_T1, clear
+
+/*CodNuaCand	LibNuaCand
+EXG	Extrême gauche
+RN	Rassemblement National
+LR	Les Républicains
+UG	Union de la gauche
+DSV	Droite souverainiste
+ENS	Ensemble ! (Majorité présidentielle)
+EXD	Extrême droite
+DIV	Divers
+ECO	Ecologistes
+DVD	Divers droite
+REC	Reconquête !
+UXD	Union de l'extrême droite
+DVG	Divers gauche
+UDI	Union des Démocrates et Indépendants
+REG	Régionaliste
+DVC	Divers centre
+HOR	Horizons
+COM	Parti communiste français
+SOC	Parti socialiste
+FI	La France insoumise
+VEC	Les Ecologistes
+RDG	Parti radical de gauche*/
+
+gen     group = "XG" if inlist(CodNuaCand, "EXG")	  
+replace group = "G"  if inlist(CodNuaCand, "COM","SOC", "UG", "DVG", "ECO", "FI", "RDG")	  
+replace group = "C"  if inlist(CodNuaCand,  "ENS", "DVC", "UDI","HOR", "VEC")	  
+replace group = "D"  if inlist(CodNuaCand, "LR","DVD")	  
+replace group = "ED" if inlist(CodNuaCand,  "REC", "RN", "EXD", "DSV", "UXD")	  
+replace group = "DIV" if inlist(CodNuaCand, "DIV","REG")
+
+gen X = .
+replace X = 0    if group == "XG" 
+replace X = 0.25 if group == "G"
+replace X = 0.5  if group == "C" | group == "DIV"
+replace X = 0.9 if group == "D"
+replace X = 1    if group == "ED"
+gen Xmin = -0.25 /* abstention de gauche */
+gen Xmax = 1.25  /* abstention de droite */
+
+rename NbVoix V
+
+
+/* Sans desistement*/
+gen R = "Passe" if inlist(Elu, "OUI","QUALIF T2")
+bys CodCirElec (X): egen runoff = total(R == "Passe")
+gen sortvar = X if R == "Passe"
+sort CodCirElec sortvar
+gen VV = 0
+gen RR = "Elu" if R == "Passe" & runoff == 1
+levelsof runoff if runoff>=2, local(runoffs)
+foreach r of local runoffs{
+	local rp = `r'+1
+	local rm = `r'-1
+	gen X0_`r'  = Xmin
+	forvalues c=1/`r'{
+		local cc = `c'+1
+		bys CodCirElec (sortvar): gen X`c'_`r' = X[`c'] if runoff==`r'
+	}
+	gen X`rp'_`r' = Xmax
+
+	forvalues c=1/`r'{
+		local cm = `c' - 1
+		local cp = `c' + 1
+		gen VV`c'_`r' = .
+		replace VV`c'_`r' = (1-(X`c'_`r'-X)/(X`c'_`r'-X`cm'_`r')) * V if inrange(X,X`cm'_`r',X`c'_`r') & runoff==`r'
+		replace VV`c'_`r' = (1-(X-X`c'_`r')/(X`cp'_`r'-X`c'_`r')) * V if inrange(X,X`c'_`r',X`cp'_`r') & runoff==`r'
+	}	
+	
+	forvalues c=1/`r'{
+		bys CodCirElec (sortvar): egen temp`c' = total(VV`c'_`r') if runoff==`r'
+		bys CodCirElec (sortvar): replace VV = temp`c' if _n == `c' & runoff==`r'
+	}
+	drop temp*
+	drop X*_`r'
+	drop VV*_`r'
+}	
+bys CodCirElec (VV) : egen EE = total(VV)
+
+bys CodCirElec (sortvar): egen temp = max(VV) if runoff >= 2
+replace RR = "Elu" if VV == temp & R == "Passe"
+drop temp
+disp "Prédiction 2024 Sans desistement" 	
+tab CodNuaCand if RR == "Elu"
+
+/* Avec 100% desistement*/
+drop R runoff sortvar VV RR EE
+gen mV = -V
+gen R = "Passe" if inlist(Elu, "OUI","QUALIF T2")  
+gen temp = inlist(group, "ED") & Elu == "QUALIF T2"
+bys CodCirElec (mV): egen hasED = total(temp)
+drop temp 
+bys CodCirElec (mV): replace R = "Desist" if Elu == "QUALIF T2" & inlist(group, "G", "C") & hasED & _n >= 3
+
+bys CodCirElec (X): egen runoff = total(R == "Passe")
+gen sortvar = X if R == "Passe"
+sort CodCirElec sortvar
+gen VV = 0
+gen RR = "Elu" if R == "Passe" & runoff == 1
+levelsof runoff if runoff>=2, local(runoffs)
+foreach r of local runoffs{
+	local rp = `r'+1
+	local rm = `r'-1
+	gen X0_`r'  = Xmin
+	forvalues c=1/`r'{
+		local cc = `c'+1
+		bys CodCirElec (sortvar): gen X`c'_`r' = X[`c'] if runoff==`r'
+	}
+	gen X`rp'_`r' = Xmax
+
+	forvalues c=1/`r'{
+		local cm = `c' - 1
+		local cp = `c' + 1
+		gen VV`c'_`r' = .
+		replace VV`c'_`r' = (1-(X`c'_`r'-X)/(X`c'_`r'-X`cm'_`r')) * V if inrange(X,X`cm'_`r',X`c'_`r') & runoff==`r'
+		replace VV`c'_`r' = (1-(X-X`c'_`r')/(X`cp'_`r'-X`c'_`r')) * V if inrange(X,X`c'_`r',X`cp'_`r') & runoff==`r'
+	}	
+	
+	forvalues c=1/`r'{
+		bys CodCirElec (sortvar): egen temp`c' = total(VV`c'_`r') if runoff==`r'
+		bys CodCirElec (sortvar): replace VV = temp`c' if _n == `c' & runoff==`r'
+	}
+	drop temp*
+	drop X*_`r'
+	drop VV*_`r'
+}	
+bys CodCirElec (VV) : egen EE = total(VV)
+
+bys CodCirElec (sortvar): egen temp = max(VV) if runoff >= 2
+replace RR = "Elu" if VV == temp & R == "Passe"
+drop temp
+disp "Prédiction 2024 Avec 227 desistements" 	
+tab CodNuaCand if RR == "Elu"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/*
+
 use data2022_T1, clear
 rename (Inscrits Exprimés Voix Sièges) (I2022T1 E2022T1 V2022T1 R2022T1)
 merge m:1 Codecirconscriptionlégislative Nom Prénom Nuance using data2022_T2, keepusing(Inscrits Exprimés Voix Sièges) nogen
@@ -195,6 +369,88 @@ save fulldata,replace
 ********************************************************************************
 quietly{
 use fulldata, clear
+gen pass = R2022T1 == "Passe"
+bys circo_id: egen runoff = total(pass)
+drop if runoff < 2
+egen g = group(group)
+
+rename V2022T1 V
+rename V2022T2 VV
+gen A = I2022T1 - E2022T1
+gen AA = I2022T1 - E2022T2
+collapse (sum) V VV pass, by(circo_id g A AA)
+preserve 
+	keep circo_id A AA
+	rename (A AA) (V VV)
+	duplicates drop
+	gen g = 0
+	gen pass = 1
+	tempfile abstention
+	save `abstention'
+restore
+drop A AA
+append using `abstention'
+sort circo_id g 
+drop if pass > 1
+tostring g, gen(gpass) force
+replace gpass = "" if !pass
+gen temp = ""
+bys circo_id (g): replace temp = gpass if _n == 1
+bys circo_id (g): replace temp = temp[_n-1] + gpass if _n > 1
+bys circo_id (g): gen duel = temp[_N]
+drop gpass pass temp
+levelsof duel, local(duels)
+levelsof g, local(gs)
+foreach duel of local duels{
+	foreach g of local gs{
+		disp "`duel' `g'"
+		quiet gen VV`duel'_`g' =  
+	}
+}
+
+
+
+
+reshape wide V VV, i(circo_id A AA ) j(g)
+
+
+
+
+
+
+
+
+
+gen V6 = A
+gen VV6 = AA 
+drop A AA
+order circo_id V? VV?
+
+
+
+
+mata
+	void myeval(todo, x, y, g, H)
+	{
+	* g = A = 0 / C=1 / D=2 / ED=3 / G=4 / XG=5 	
+	
+	
+	
+	V = st_data(., "V")		
+	VV = st_data(., "V")		
+	g = st_data(., "g")
+	c = st_data(., "circo_id")	
+		
+	y = exp(-x^2 + x - 3)
+	}
+	S = optimize_init()
+
+	optimize_init_evaluator(S, &myeval())
+	optimize_init_params(S, 0)
+	x = optimize(S)
+	x
+end
+
 rename (*2022T1) (*)
 keep circo_id candidat_id I E V R Nuance group R2022
 /*Baseline = 2022 */
@@ -270,16 +526,16 @@ tab actual predict
 ***                     Simulation 2024                                      ***
 ********************************************************************************
 use fulldata,clear
-keep circo_id candidat_id I* E* V* R* group Nuance
+keep circo_id Codecirconscriptionlégislative candidat_id I* E* V* R* group Nuance
 /* PARAMETRES */ /*<------------------------------------------------------------------------------------------------------------------------------ PARAMETRES ICI*/
 * distance :
 * si X1 < x < X2
 * report de x vers Xi = 1-abs(x-Xi)/(X2-X1)
 gen X = .
-replace X = 0    if group == "XG"
+replace X = 0    if group == "XG" 
 replace X = 0.25 if group == "G"
-replace X = 0.5  if group == "C"
-replace X = 0.9  if group == "D"
+replace X = 0.5 /*0.5*/  if group == "C"
+replace X = 0.9 /*0.9*/ if group == "D"
 replace X = 1    if group == "ED"
 gen Xmin = -0.25 /* abstention de gauche */
 gen Xmax = 1.25  /* abstention de droite */
@@ -331,6 +587,8 @@ foreach r of local runoffs{
 	drop X*_`r'
 	drop VV*_`r'
 }	
+bys circo_id (VV) : egen EE = total(VV)
+
 bys circo_id (sortvar): egen temp = max(VV) if runoff >= 2
 replace RR = "Elu" if VV == temp & R == "Passe"
 drop temp
@@ -340,6 +598,15 @@ tab Nuance if RR == "Elu"
 }
 }
 /**/
+preserve 
+collapse (sum) V2019 E2019 V2024 E2024 V2022T1 V2022T2 E2022T1 E2022T2 V E VV EE , by(Nuance)
+gen VE2019 = V2019/E2019
+gen VE2024 = V2024/E2024
+gen VE2022T1 = V2022T1/E2022T1
+gen VE2022T2 = V2022T2/E2022T2
+restore
+
+
 
 use data2019, clear
 collapse (mean) Inscrits Exprimés (sum) Voix, by(Codecirconscriptionlégislative group)
@@ -352,6 +619,8 @@ preserve
 	save `temp'
 restore
 merge m:1 Codecirconscriptionlégislative group using `temp', nogen
+
+
 
 gen VE2019 = V2019/E2019
 gen VE2024 = V2024/E2024
